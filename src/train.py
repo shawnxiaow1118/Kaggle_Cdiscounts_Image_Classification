@@ -6,6 +6,7 @@ import data_loader
 from utils import *
 from model import *
 import os
+import numpy as np
 
 num_epoches = 5
 batch_size = 128
@@ -14,7 +15,7 @@ save_step = 10000
 
 # load data and dataloader
 data = read_file("../data/train_0_label.p")
-train_data, test_data = custom_split(data, 0.1)
+train_data, test_data = custom_split(data, 0.005)
 train_loader = data_loader.get_loader(train_data, batch_size, 0)
 test_loader = data_loader.get_loader(test_data, batch_size, 0)
 
@@ -24,6 +25,19 @@ m_model.cuda()
 print(m_model)
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(m_model.parameters(), lr=learning_rate)
+
+level1 = np.ones(49)
+level2 = np.ones(483)
+level3 = np.ones(5272)
+
+for key in data.keys():
+	level1[data[key][1]] += 1
+	level2[data[key][2]] += 1
+	level3[data[key][3]] += 1
+
+weight1 = cal_weights(level1)
+weight2 = cal_weights(level2)
+weight3 = cal_weights(level3)
 
 
 for epoch in range(num_epoches):

@@ -40,3 +40,9 @@ def read_file(file_name):
         data = pickle.load(fp)
         print("label dictionary read from {}".format(file_name))
         return data
+
+def cal_weights(counts):
+    ratio = counts/counts.sum()
+    adjust = 1.0/np.sqrt(ratio)
+    adjust_ratio = adjust/adjust.sum()*len(counts)
+    return adjust_ratio
