@@ -53,14 +53,18 @@ m_model = model_vgg16(49, 483, 5272)
 m_model.cuda()
 
 m_model.load_state_dict(torch.load("./model-0-9999.pkl"))
+m_model.eval()
 
+data = bson.decode_file_iter(open("../data/test.bson", 'rb'))
 
 i = 0
+submit = [["_id","categorical_id"]]
 for img in data:
-    if  i > 2:
-        break
-    id = img['_id']
+    # if  i > 20:
+    #     break
+    idx = img['_id']
     i += 1
+#     print(img['imgs'][0]['picture'])
     picture = imread(io.BytesIO(img['imgs'][0]['picture']))
 #     print(picture)
     # plt.imshow(picture)
@@ -70,7 +74,15 @@ for img in data:
     image = resize(img, (64,64))
     image = image_to_tensor(image, 0, 255)
     image = image.unsqueeze(0)
-    print(image.size())
+    # print(image.size())
     image = Variable(image).cuda()
     l1, l2, l3 = m_model(image)
-    print(l1)
+    _, pred = torch.max(l3.data, 1)
+    pred = pred.cpu().numpy()
+    submit.append([str(idx),str(id_category3[pred[0]])])
+    print("id : {} pred : {}".format(i, pred[0]))
+
+with open("submit.csv", "w") as csv_file:
+        writer = csv.writer(csv_file, delimiter=',')
+        for line in submit:
+            writer.writerow(line)
